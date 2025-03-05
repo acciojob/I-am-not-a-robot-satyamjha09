@@ -1,86 +1,78 @@
-const imageContainer = document.getElementById("image-container");
-const resetButton = document.getElementById("reset");
-const verifyButton = document.getElementById("verify");
-const message = document.getElementById("para");
+document.addEventListener("DOMContentLoaded", function () {
+    const imageContainer = document.getElementById("image-container");
+    const para = document.getElementById("para");
+    const resetButton = document.getElementById("reset");
+    const verifyButton = document.getElementById("verify");
 
-const imageSources = [
-  "https://picsum.photos/id/237/200/300",
-  "https://picsum.photos/seed/picsum/200/300",
-  "https://picsum.photos/200/300?grayscale",
-  "https://picsum.photos/200/300/",
-  "https://picsum.photos/200/300.jpg",
-];
+    let images = [
+        "https://picsum.photos/id/237/200/300",
+        "https://picsum.photos/seed/picsum/200/300",
+        "https://picsum.photos/200/300?grayscale",
+        "https://picsum.photos/200/300/",
+        "https://picsum.photos/200/300.jpg"
+    ];
 
-let images = [];
-let selectedImages = [];
+    let selectedImages = [];
 
-// 🔄 Randomly shuffle images and duplicate one
-function loadImages() {
-  let randomImages = [...imageSources];
-  let duplicateImage = randomImages[Math.floor(Math.random() * randomImages.length)];
-  randomImages.push(duplicateImage);
+    function shuffleImages() {
+        let randomIndex = Math.floor(Math.random() * images.length);
+        let duplicateImage = images[randomIndex];
+        let imagesWithDuplicate = [...images, duplicateImage];
 
-  randomImages.sort(() => Math.random() - 0.5); // Shuffle the images
+        imagesWithDuplicate.sort(() => Math.random() - 0.5);
+        return imagesWithDuplicate;
+    }
 
-  imageContainer.innerHTML = ""; // Clear container
-  images = [];
+    function displayImages() {
+        let shuffledImages = shuffleImages();
+        imageContainer.innerHTML = "";
 
-  randomImages.forEach((src, index) => {
-    let img = document.createElement("img");
-    img.src = src;
-    img.dataset.index = index;
-    img.addEventListener("click", selectImage);
-    imageContainer.appendChild(img);
-    images.push(img);
-  });
+        shuffledImages.forEach((src, index) => {
+            let img = document.createElement("img");
+            img.src = src;
+            img.dataset.index = index;
+            img.addEventListener("click", () => selectImage(img, src));
+            imageContainer.appendChild(img);
+        });
+    }
 
-  resetState();
-}
+    function selectImage(img, src) {
+        if (selectedImages.length < 2 && !img.classList.contains("selected")) {
+            img.classList.add("selected");
+            selectedImages.push({ img, src });
 
-// 🔘 Image selection logic
-function selectImage(event) {
-  const img = event.target;
+            if (selectedImages.length === 1) {
+                resetButton.style.display = "inline-block";
+            }
 
-  if (selectedImages.includes(img)) return; // Prevent double-clicking the same image
+            if (selectedImages.length === 2) {
+                verifyButton.style.display = "inline-block";
+            }
+        }
+    }
 
-  img.classList.add("selected");
-  selectedImages.push(img);
+    function verifySelection() {
+        if (selectedImages.length === 2) {
+            if (selectedImages[0].src === selectedImages[1].src) {
+                para.textContent = "✅ You are a human. Congratulations!";
+            } else {
+                para.textContent = "❌ We can't verify you as a human. You selected the non-identical tiles.";
+            }
 
-  resetButton.style.display = "block";
+            verifyButton.style.display = "none";
+        }
+    }
 
-  if (selectedImages.length === 2) {
-    verifyButton.style.display = "block";
-  }
-}
+    function resetGame() {
+        selectedImages.forEach(({ img }) => img.classList.remove("selected"));
+        selectedImages = [];
+        para.textContent = "";
+        resetButton.style.display = "none";
+        verifyButton.style.display = "none";
+    }
 
-// 🔄 Reset Function
-function resetState() {
-  selectedImages = [];
-  images.forEach(img => img.classList.remove("selected"));
-  message.textContent = "";
-  resetButton.style.display = "none";
-  verifyButton.style.display = "none";
-}
+    resetButton.addEventListener("click", resetGame);
+    verifyButton.addEventListener("click", verifySelection);
 
-// ✅ Verification Logic
-function verifyImages() {
-  if (selectedImages.length !== 2) return;
-
-  verifyButton.style.display = "none";
-
-  if (selectedImages[0].src === selectedImages[1].src) {
-    message.textContent = "✅ You are a human. Congratulations!";
-    message.style.color = "green";
-  } else {
-    message.textContent = "❌ We can't verify you as a human. You selected non-identical tiles.";
-    message.style.color = "red";
-  }
-}
-
-// 🟢 Event Listeners
-resetButton.addEventListener("click", loadImages);
-verifyButton.addEventListener("click", verifyImages);
-
-// 🔄 Load images on page load
-loadImages();
-
+    displayImages();
+});
