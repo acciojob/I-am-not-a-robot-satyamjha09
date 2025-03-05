@@ -30,6 +30,7 @@ document.addEventListener("DOMContentLoaded", function () {
         shuffledImages.forEach((src, index) => {
             let img = document.createElement("img");
             img.src = src;
+            img.classList.add(`img${index + 1}`); // ✅ Add unique class
             img.dataset.index = index;
             img.addEventListener("click", () => selectImage(img, src));
             imageContainer.appendChild(img);
